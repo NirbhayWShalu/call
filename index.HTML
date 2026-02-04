@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Night Call From Me</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet">
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Playfair Display', serif;
+}
+body{
+  background:#000;
+  color:#fff;
+  overflow:hidden;
+}
+
+/* SCENES */
+.scene{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  padding:20px;
+  opacity:0;
+  transition:opacity 1.5s ease;
+}
+.scene.active{
+  opacity:1;
+  z-index:1;
+}
+
+/* CALL SCREEN */
+.call-name{ font-size:1.9rem; }
+.call-status{
+  opacity:0.7;
+  margin:12px 0 40px;
+}
+.call-actions{
+  display:flex;
+  gap:60px;
+}
+.call-btn{
+  width:72px;
+  height:72px;
+  border-radius:50%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-size:2rem;
+  cursor:pointer;
+}
+.accept{ background:#2ecc71; }
+.reject{
+  background:#e74c3c;
+  font-weight:bold;
+}
+
+/* FADE TO BLACK */
+.fade-black{
+  position:absolute;
+  inset:0;
+  background:#000;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .8s ease;
+  z-index:5;
+}
+.fade-black.show{ opacity:1; }
+
+/* MESSAGE */
+.message{
+  max-width:320px;
+  font-size:1.1rem;
+  line-height:1.8;
+}
+
+/* PHOTO */
+.photo{
+  width:260px;
+  border-radius:20px;
+  margin-bottom:20px;
+  filter:blur(12px) brightness(0.6);
+  transition:3s ease;
+}
+.scene.active .photo{
+  filter:blur(0) brightness(1);
+}
+
+/* FINGER WARMTH EFFECT */
+.warmth{
+  position:absolute;
+  width:120px;
+  height:120px;
+  border-radius:50%;
+  background:radial-gradient(circle,
+    rgba(255,105,180,0.45),
+    rgba(255,105,180,0.2),
+    transparent 70%);
+  pointer-events:none;
+  opacity:0;
+  transform:translate(-50%, -50%) scale(0.8);
+  transition:opacity .4s ease, transform .4s ease;
+}
+.warmth.active{
+  opacity:1;
+  transform:translate(-50%, -50%) scale(2.4);
+}
+</style>
+</head>
+
+<body>
+
+<div class="fade-black" id="fade"></div>
+
+<audio id="ringtone" loop>
+  <source src="call.mp3">
+</audio>
+
+<audio id="music" loop>
+  <source src="music.mp3">
+</audio>
+
+<!-- SCENE 1 : CALL -->
+<div class="scene active" id="callScene">
+  <div class="call-name">Nirbhay ❤️</div>
+  <div class="call-status" id="callStatus">Incoming call…</div>
+  <div class="call-actions">
+    <div class="call-btn reject" id="reject">✕</div>
+    <div class="call-btn accept" id="accept">📞</div>
+  </div>
+</div>
+
+<!-- SCENE 2 -->
+<div class="scene">
+  <div class="message">
+    Hey…<br>
+    I know it’s late.<br>
+    But some thoughts don’t let me sleep.
+  </div>
+</div>
+
+<!-- SCENE 3 -->
+<div class="scene">
+  <div class="message">
+    Even on the hardest days,<br>
+    choosing you feels easy.
+  </div>
+</div>
+
+<!-- SCENE 4 -->
+<div class="scene">
+  <img src="image.jpg" class="photo" alt="Her">
+  <div class="message">
+    This smile…<br>
+    this is my calm.
+  </div>
+</div>
+
+<!-- SCENE 5 -->
+<div class="scene">
+  <div class="message">
+    Life won’t always be perfect.<br>
+    But I promise you’ll never face it alone.
+  </div>
+</div>
+
+<!-- HOLD SCENE -->
+<div class="scene" id="holdScene">
+  <div class="message">
+    If you want me to stay…<br>
+    just hold the screen.
+  </div>
+  <!-- replaces “don’t let go” -->
+  <div class="warmth" id="warmth"></div>
+</div>
+
+<!-- FINAL SCENE -->
+<div class="scene">
+  <h1>Call Connected Forever ❤️</h1>
+  <p>30-Nov-2026 💍</p>
+</div>
+
+<script>
+const scenes = document.querySelectorAll('.scene');
+let current = 0;
+let callBackTimer, holdTimer;
+
+const ringtone = document.getElementById('ringtone');
+const music = document.getElementById('music');
+const callStatus = document.getElementById('callStatus');
+const fade = document.getElementById('fade');
+const warmth = document.getElementById('warmth');
+const holdScene = document.getElementById('holdScene');
+
+ringtone.play();
+
+/* NEXT SCENE */
+function nextScene(){
+  scenes[current].classList.remove('active');
+  current++;
+  scenes[current].classList.add('active');
+}
+
+/* ACCEPT */
+document.getElementById('accept').onclick = ()=>{
+  ringtone.pause();
+  music.play();
+  nextScene();
+};
+
+/* REJECT */
+document.getElementById('reject').onclick = ()=>{
+  ringtone.pause();
+  callStatus.innerText = "Call Ended";
+  fade.classList.add('show');
+
+  clearTimeout(callBackTimer);
+  callBackTimer = setTimeout(()=>{
+    fade.classList.remove('show');
+    callStatus.innerText = "Incoming call…";
+    ringtone.play();
+  },3000);
+};
+
+/* AUTO STORY FLOW */
+setInterval(()=>{
+  if(current > 0 && current < scenes.length - 2){
+    nextScene();
+  }
+},6500);
+
+/* FINGER WARMTH HOLD */
+function startWarmth(e){
+  const touch = e.touches ? e.touches[0] : e;
+
+  warmth.style.left = touch.clientX + 'px';
+  warmth.style.top = touch.clientY + 'px';
+  warmth.classList.add('active');
+
+  holdTimer = setTimeout(()=>{
+    nextScene();
+  },3000);
+}
+
+function endWarmth(){
+  clearTimeout(holdTimer);
+  warmth.classList.remove('active');
+}
+
+holdScene.addEventListener('touchstart', startWarmth);
+holdScene.addEventListener('mousedown', startWarmth);
+holdScene.addEventListener('touchend', endWarmth);
+holdScene.addEventListener('mouseup', endWarmth);
+</script>
+
+</body>
+</html>
