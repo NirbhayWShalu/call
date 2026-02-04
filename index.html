@@ -223,21 +223,26 @@ const holdScene = document.getElementById('holdScene');
 function nextScene(){
   scenes[current].classList.remove('active');
   current++;
-  scenes[current].classList.add('active');
+  if(current < scenes.length){
+    scenes[current].classList.add('active');
+  }
 }
 
 /* ACCEPT */
-document.getElementById('accept').onclick = async ()=>{
-  try{
-    ringtone.pause();
-    ringtone.currentTime = 0;
-    await music.play();
-    nextScene();
-  }catch(e){}
+document.getElementById('accept').onclick = () => {
+  // Stop ringtone
+  ringtone.pause();
+  ringtone.currentTime = 0;
+
+  // Try to play music, but continue even if blocked
+  music.play().catch(()=>{});
+
+  // Move to next scene immediately
+  nextScene();
 };
 
 /* REJECT */
-document.getElementById('reject').onclick = ()=>{
+document.getElementById('reject').onclick = () => {
   ringtone.pause();
   callStatus.innerText = "Call Ended";
   fade.classList.add('show');
