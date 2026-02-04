@@ -2,18 +2,37 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Night Call From Me</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet">
 
 <style>
+/* 🔒 GLOBAL LOCK */
 *{
   margin:0;
   padding:0;
   box-sizing:border-box;
   font-family:'Playfair Display', serif;
+
+  -webkit-user-select:none;
+  -moz-user-select:none;
+  -ms-user-select:none;
+  user-select:none;
+
+  -webkit-tap-highlight-color:transparent;
 }
+
+/* Remove selection color completely */
+::selection{
+  background:transparent;
+  color:inherit;
+}
+::-moz-selection{
+  background:transparent;
+  color:inherit;
+}
+
 body{
   background:#000;
   color:#fff;
@@ -95,7 +114,7 @@ body{
   filter:blur(0) brightness(1);
 }
 
-/* FINGER WARMTH EFFECT */
+/* WARMTH EFFECT */
 .warmth{
   position:absolute;
   width:120px;
@@ -121,15 +140,15 @@ body{
 
 <div class="fade-black" id="fade"></div>
 
-<audio id="ringtone" loop>
-  <source src="call.mp3">
+<audio id="ringtone" loop preload="auto" playsinline>
+  <source src="call.mp3" type="audio/mpeg">
 </audio>
 
-<audio id="music" loop>
-  <source src="music.mp3">
+<audio id="music" loop preload="auto" playsinline>
+  <source src="music.mp3" type="audio/mpeg">
 </audio>
 
-<!-- SCENE 1 : CALL -->
+<!-- SCENE 1 -->
 <div class="scene active" id="callScene">
   <div class="call-name">Nirbhay ❤️</div>
   <div class="call-status" id="callStatus">Incoming call…</div>
@@ -179,11 +198,10 @@ body{
     If you want me to stay…<br>
     just hold the screen.
   </div>
-  <!-- replaces “don’t let go” -->
   <div class="warmth" id="warmth"></div>
 </div>
 
-<!-- FINAL SCENE -->
+<!-- FINAL -->
 <div class="scene">
   <h1>Call Connected Forever ❤️</h1>
   <p>30-Nov-2026 💍</p>
@@ -201,8 +219,6 @@ const fade = document.getElementById('fade');
 const warmth = document.getElementById('warmth');
 const holdScene = document.getElementById('holdScene');
 
-ringtone.play();
-
 /* NEXT SCENE */
 function nextScene(){
   scenes[current].classList.remove('active');
@@ -211,10 +227,13 @@ function nextScene(){
 }
 
 /* ACCEPT */
-document.getElementById('accept').onclick = ()=>{
-  ringtone.pause();
-  music.play();
-  nextScene();
+document.getElementById('accept').onclick = async ()=>{
+  try{
+    ringtone.pause();
+    ringtone.currentTime = 0;
+    await music.play();
+    nextScene();
+  }catch(e){}
 };
 
 /* REJECT */
@@ -227,30 +246,28 @@ document.getElementById('reject').onclick = ()=>{
   callBackTimer = setTimeout(()=>{
     fade.classList.remove('show');
     callStatus.innerText = "Incoming call…";
-    ringtone.play();
+    ringtone.play().catch(()=>{});
   },3000);
 };
 
-/* AUTO STORY FLOW */
+/* AUTO FLOW */
 setInterval(()=>{
   if(current > 0 && current < scenes.length - 2){
     nextScene();
   }
 },6500);
 
-/* FINGER WARMTH HOLD */
+/* WARMTH HOLD */
 function startWarmth(e){
-  const touch = e.touches ? e.touches[0] : e;
-
-  warmth.style.left = touch.clientX + 'px';
-  warmth.style.top = touch.clientY + 'px';
+  const t = e.touches ? e.touches[0] : e;
+  warmth.style.left = t.clientX + 'px';
+  warmth.style.top = t.clientY + 'px';
   warmth.classList.add('active');
 
   holdTimer = setTimeout(()=>{
     nextScene();
   },3000);
 }
-
 function endWarmth(){
   clearTimeout(holdTimer);
   warmth.classList.remove('active');
@@ -260,9 +277,19 @@ holdScene.addEventListener('touchstart', startWarmth);
 holdScene.addEventListener('mousedown', startWarmth);
 holdScene.addEventListener('touchend', endWarmth);
 holdScene.addEventListener('mouseup', endWarmth);
+
+/* 🔒 BLOCK COPY / SELECT */
+document.addEventListener("selectstart", e => e.preventDefault());
+document.addEventListener("copy", e => e.preventDefault());
+document.addEventListener("cut", e => e.preventDefault());
+document.addEventListener("paste", e => e.preventDefault());
+document.addEventListener("contextmenu", e => e.preventDefault());
+document.addEventListener("keydown", e => {
+  if(e.ctrlKey && ["a","c","x","v"].includes(e.key.toLowerCase())){
+    e.preventDefault();
+  }
+});
 </script>
 
 </body>
 </html>
-
-
