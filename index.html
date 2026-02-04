@@ -145,7 +145,7 @@ body{
 </audio>
 
 <audio id="music" loop preload="auto" playsinline>
-  <source src="music.mpeg" type="audio/mpeg">
+  <source src="music.mp3" type="audio/mpeg">
 </audio>
 
 <!-- SCENE 1 -->
@@ -228,20 +228,20 @@ function nextScene(){
   }
 }
 
-/* ACCEPT */
+/* ACCEPT BUTTON */
 document.getElementById('accept').onclick = () => {
-  // Stop ringtone
   ringtone.pause();
   ringtone.currentTime = 0;
 
-  // Try to play music, but continue even if blocked
-  music.play().catch(()=>{});
+  // Try to play music safely
+  music.play().catch(() => {
+    console.log("Audio blocked, will play after first user interaction");
+  });
 
-  // Move to next scene immediately
   nextScene();
 };
 
-/* REJECT */
+/* REJECT BUTTON */
 document.getElementById('reject').onclick = () => {
   ringtone.pause();
   callStatus.innerText = "Call Ended";
@@ -283,7 +283,12 @@ holdScene.addEventListener('mousedown', startWarmth);
 holdScene.addEventListener('touchend', endWarmth);
 holdScene.addEventListener('mouseup', endWarmth);
 
-/* 🔒 BLOCK COPY / SELECT (SAFE VERSION) */
+/* MOBILE AUDIO UNLOCK */
+document.body.addEventListener('touchstart', () => {
+  music.play().catch(()=>{});
+}, { once: true });
+
+/* 🔒 BLOCK COPY / SELECT */
 document.addEventListener("selectstart", e => e.preventDefault());
 document.addEventListener("copy", e => e.preventDefault());
 document.addEventListener("cut", e => e.preventDefault());
@@ -298,4 +303,3 @@ document.addEventListener("keydown", e => {
 
 </body>
 </html>
-
